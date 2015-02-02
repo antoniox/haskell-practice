@@ -1,4 +1,5 @@
-import Data.Ord
+import Data.List (sortBy, sort, splitAt)
+import Data.Ord (comparing)
 
 
 data Direction = LeftTurn
@@ -11,6 +12,11 @@ data Point2D = Point2D {
     px :: Double,
     py :: Double
 } deriving (Eq, Ord, Show)
+
+
+points :: [(Double, Double)] -> [Point2D]
+points ((a, b):xs) = Point2D a b:points xs
+points _ = []
 
 
 data Vector2D = Vector2D {
@@ -47,8 +53,16 @@ angle :: Point2D -> Point2D -> Double
 angle a b = acos $ vx (vec b a) / norm (vec b a)
 
 
+tplfunc f g x = (f x, g x)
+
+
 grahamsScan :: [Point2D] -> [Point2D]
 grahamsScan xs = grahamsScan' processed
-    where processed = lowest:(sortBy (comparing angle) rest) 
-          (lowest, rest) = split 1 $ sort xs
-          grahamsScan' ys = 
+    where processed = lowest:(sortBy (comparing $ tplfunc (angle lowest) px) rest) 
+          lowest:rest = sortBy (\a b -> compare (py a, px a) (py b, px b)) xs
+
+          grahamsScan' ys = case other of
+               [] -> ys
+               z:zs -> grahamsScan' $ (fst $ unzip left) ++ (fst $ unzip zs)
+            where (left, other) = span (\(_, t) -> t == LeftTurn) pairs
+                  pairs = zip ys (LeftTurn:(getDirections ys) ++ [LeftTurn])

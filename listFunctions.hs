@@ -1,19 +1,12 @@
-import Data.List (sortBy)
+import Data.List (sortBy, splitAt)
 import Data.Ord (comparing)
 
-
-split :: Int -> [a] -> ([a], [a])
-split 0 xs = ([], xs)
-split n [] = ([], [])
-split n (x:xs) = (x:(fst $ split (n - 1) xs), snd $ split (n - 1) xs)
+take' :: Int -> [a] -> [a]
+take' n xs = fst $ splitAt n xs
 
 
-take :: Int -> [a] -> [a]
-take n xs = fst $ split n xs
-
-
-drop :: Int -> [a] -> [a]
-drop n xs = snd $ split n xs
+drop' :: Int -> [a] -> [a]
+drop' n xs = snd $ splitAt n xs
 
 
 lastButOne :: [a] -> a
@@ -22,8 +15,8 @@ lastButOne (x:xs) = lastButOne xs
 lastButOne _ = error "list too short"
 
 
-length :: [a] -> Int
-length xs = foldr (\y ys -> ys + 1) 0 xs
+length' :: [a] -> Int
+length' xs = foldr (\y ys -> ys + 1) 0 xs
 
 
 oddIntersperce :: [a] -> [[a]] -> [a]
@@ -45,13 +38,78 @@ isPalindrome xs = xs == reverse xs
 
 
 sortByLength :: [[a]] -> [[a]]
-sortByLength xs = sortBy (comparing Main.length) xs
+sortByLength xs = sortBy (comparing length) xs
 
 
-data Tree a = Node a (Tree a) (Tree a)
-            | Empty
+break' :: (a -> Bool) -> [a] -> ([a], [a])
+break' p [] = ([], [])
+break' p (x:xs)
+    | p x = ([], (x:xs))
+    | otherwise = (x:(fst $ break' p xs), (snd $ break' p xs))
 
 
-height :: Tree a -> Int
-height Empty = 0
-height (Node _ l r) = max (height l) (height r) + 1
+elem' :: (Eq a) => a -> [a] -> Bool
+elem' _ [] = False
+elem' a (x:xs)
+    | a == x = True
+    | otherwise = elem' a xs
+
+
+isPrefixOf' :: (Eq a) => [a] -> [a] -> Bool
+isPrefixOf' _ [] = False
+isPrefixOf' [] _ = True
+isPrefixOf' (x:xs) (y:ys)
+    | x == y = isPrefixOf' xs ys
+    | otherwise = False
+
+
+isSuffixOf' :: (Eq a) => [a] -> [a] -> Bool
+isSuffixOf' xs ys = isPrefixOf' (reverse xs) (reverse ys)
+
+
+null' :: [a] -> Bool
+null' [] = True
+null' _ = False
+
+
+head' :: [a] -> a
+head' (x:xs) = x
+
+
+tail' :: [a] -> [a]
+tail' (x:xs) = xs
+
+
+last' :: [a] -> a
+last' (x:[]) = x
+last' (x:xs) = last' xs
+
+
+init' :: [a] -> [a]
+init' (x:[]) = []
+init' (x:xs) = x:init' xs
+
+
+concat' :: [[a]] -> [a]
+concat' ((x:xs):ys) = x:(concat' (xs:ys))
+concat' ([]:ys) = concat' ys
+concat' [] = []
+
+reverse' :: [a] -> [a]
+reverse' (x:xs) = reverse' xs ++ [x]
+reverse' [] = []
+
+and' :: [Bool] -> Bool
+and' xs = foldr (&&) True xs
+
+
+or' :: [Bool] -> Bool
+or' xs = foldr (||) False xs
+
+
+all' :: (a -> Bool) -> [a] -> Bool
+all' p xs = foldr (\y ys -> p y && ys) True xs
+
+
+any' :: (a -> Bool) -> [a] -> Bool
+any' p xs = foldr (\y ys -> p y || ys) False xs
